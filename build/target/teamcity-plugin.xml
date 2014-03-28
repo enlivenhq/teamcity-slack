@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<teamcity-plugin xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:shemas-jetbrains-com:teamcity-plugin-v1-xml">
+  <info>
+    <name>teamcity-slack-integration</name>
+    <display-name>teamcity-slack-integration</display-name>
+    <version>snapshot-20142803165714</version>
+    <description>Plugin description</description>
+    <download-url>Plugin download URL</download-url>
+    <email>Plugin author e-mail</email>
+    <vendor>
+      <name>Plugin vendor name</name>
+      <url>Plugin vendor URL</url>
+      <logo>Plugin vendor logo URL</logo>
+    </vendor>
+  </info>
+  <deployment use-separate-classloader="true" />
+</teamcity-plugin>
