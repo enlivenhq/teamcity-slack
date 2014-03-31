@@ -81,8 +81,7 @@ public class SlackWrapper
 
     public void setChannel(String channel)
     {
-        // Make sure the channel has the required prefix hash
-        this.channel = (channel.substring(0, 1) == "#") ? channel : "#" + channel;
+        this.channel = channel;
     }
 
     public String getChannel()

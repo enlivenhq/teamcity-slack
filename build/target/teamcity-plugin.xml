@@ -2,15 +2,15 @@
 <teamcity-plugin xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:shemas-jetbrains-com:teamcity-plugin-v1-xml">
   <info>
     <name>teamcity-slack-integration</name>
-    <display-name>teamcity-slack-integration</display-name>
-    <version>snapshot-20143103092551</version>
-    <description>Plugin description</description>
-    <download-url>Plugin download URL</download-url>
-    <email>Plugin author e-mail</email>
+    <display-name>Slack</display-name>
+    <version>snapshot-20143103164424</version>
+    <description>Post messages to your Slack instance for build events.</description>
+    <download-url>http://enlivenhq.com/</download-url>
+    <email>developers@enlivenhq.com</email>
     <vendor>
-      <name>Plugin vendor name</name>
-      <url>Plugin vendor URL</url>
-      <logo>Plugin vendor logo URL</logo>
+      <name>Enliven HQ</name>
+      <url>http://enlivenhq.com/</url>
+      <logo>http://enlivenhq.com/wp-content/themes/enlivenhq/_/images/enliven_circle.svg</logo>
     </vendor>
   </info>
   <deployment use-separate-classloader="true" />
