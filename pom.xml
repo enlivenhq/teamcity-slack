@@ -13,6 +13,7 @@
         <id>JetBrains</id>
         <url>http://repository.jetbrains.com/all</url>
     </repository>
+
   </repositories>
   <build>
       <pluginManagement>
