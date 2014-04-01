@@ -2,7 +2,6 @@ package com.enlivenhq.teamcity;
 
 import com.enlivenhq.slack.SlackWrapper;
 import jetbrains.buildServer.Build;
-import jetbrains.buildServer.BuildProblemData;
 import jetbrains.buildServer.notification.Notificator;
 import jetbrains.buildServer.notification.NotificatorRegistry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
@@ -21,7 +20,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 public class SlackNotificator implements Notificator {
@@ -39,7 +37,6 @@ public class SlackNotificator implements Notificator {
     private static final PropertyKey slackUrl = new NotificatorPropertyKey(type, slackUrlKey);
 
     public SlackNotificator(NotificatorRegistry notificatorRegistry) {
-        log.info("Registering user properties.");
         registerNotificatorAndUserProperties(notificatorRegistry);
     }
 
@@ -54,64 +51,38 @@ public class SlackNotificator implements Notificator {
     }
 
     public void notifyBuildFailed(@NotNull SRunningBuild sRunningBuild, @NotNull Set<SUser> users) {
-        log.info("Notify build failed.");
-
-        String concatenatedReasons = getConcatenatedFailureReasons(sRunningBuild.getFailureReasons());
-
-        sendNotification("Build " + sRunningBuild.getFullName() + " failed to build #" +
-                            sRunningBuild.getBuildNumber() + " for the following reason(s):\n" +
-                            concatenatedReasons, users);
+         sendNotification("@channel: Build " + sRunningBuild.getFullName() + " #" +
+                sRunningBuild.getBuildNumber() + " failed.", users);
     }
 
     public void notifyBuildFailedToStart(@NotNull SRunningBuild sRunningBuild, @NotNull Set<SUser> users) {
-        log.info("Notify build failed to start.");
-
-        String concatenatedReasons = getConcatenatedFailureReasons(sRunningBuild.getFailureReasons());
-
-        sendNotification("Build " + sRunningBuild.getFullName() + " failed to start building #" +
-                sRunningBuild.getBuildNumber() + " for the following reason(s):\n" +
-                concatenatedReasons, users);
+        sendNotification("@channel: Build " + sRunningBuild.getFullName() + " #" +
+                sRunningBuild.getBuildNumber() + " failed to start.", users);
     }
 
     public void notifyBuildSuccessful(@NotNull SRunningBuild sRunningBuild, @NotNull Set<SUser> users) {
-        log.info("Notify build successful.");
-
-        sendNotification("Build " + sRunningBuild.getFullName() + " built #" +
-                sRunningBuild.getBuildNumber() + " successfully!", users);
+        sendNotification("@channel: Build " + sRunningBuild.getFullName() + " #" +
+                sRunningBuild.getBuildNumber() + " built successfully.", users);
     }
 
     public void notifyLabelingFailed(@NotNull Build build, @NotNull VcsRoot vcsRoot, @NotNull Throwable throwable, @NotNull Set<SUser> sUsers) {
-        log.info("Notify build labeling failed.");
-
-        sendNotification("Build " + build.getFullName() + " labeling failed for #" +
-                build.getBuildNumber(), sUsers);
+        sendNotification("@channel: Build " + build.getFullName() + " #" +
+                build.getBuildNumber() + " labeling failed.", sUsers);
     }
 
     public void notifyBuildFailing(@NotNull SRunningBuild sRunningBuild, @NotNull Set<SUser> sUsers) {
-        log.info("Notify build failing.");
-
-        String concatenatedReasons = getConcatenatedFailureReasons(sRunningBuild.getFailureReasons());
-
-        sendNotification("Build " + sRunningBuild.getFullName() + " failing #" +
-                sRunningBuild.getBuildNumber() + " for the following reason(s):\n" +
-                concatenatedReasons, sUsers);
+        sendNotification("@channel: Build " + sRunningBuild.getFullName() + " #" +
+                sRunningBuild.getBuildNumber() + " failing.", sUsers);
     }
 
     public void notifyBuildProbablyHanging(@NotNull SRunningBuild sRunningBuild, @NotNull Set<SUser> sUsers) {
-        log.info("Notify build probably hanging.");
-
-        String concatenatedReasons = getConcatenatedFailureReasons(sRunningBuild.getFailureReasons());
-
-        sendNotification("Build " + sRunningBuild.getFullName() + " is probably hanging on #" +
-                sRunningBuild.getBuildNumber() + " for the following reason(s):\n" +
-                concatenatedReasons, sUsers);
+        sendNotification("@channel: Build " + sRunningBuild.getFullName() + " #" +
+                sRunningBuild.getBuildNumber() + " probably hanging.", sUsers);
     }
 
     public void notifyBuildStarted(@NotNull SRunningBuild sRunningBuild, @NotNull Set<SUser> sUsers) {
-        log.info("Notify build started.");
-
-        sendNotification("Build " + sRunningBuild.getFullName() + " started #" +
-                sRunningBuild.getBuildNumber(), sUsers);
+        sendNotification("@channel: Build " + sRunningBuild.getFullName() + " #" +
+                sRunningBuild.getBuildNumber() + " started.", sUsers);
     }
 
     public void notifyResponsibleChanged(@NotNull SBuildType sBuildType, @NotNull Set<SUser> sUsers) {
@@ -162,16 +133,6 @@ public class SlackNotificator implements Notificator {
 
     }
 
-    private String getConcatenatedFailureReasons(List<BuildProblemData> failureReasons) {
-        String concatenated = "";
-
-        for (BuildProblemData buildProblemData : failureReasons) {
-            concatenated += buildProblemData.getDescription() + "\n";
-        }
-
-        return concatenated.trim();
-    }
-
     private void registerNotificatorAndUserProperties(NotificatorRegistry notificatorRegistry) {
         ArrayList<UserPropertyInfo> userPropertyInfos = getUserPropertyInfosList();
         notificatorRegistry.register(this, userPropertyInfos);
@@ -188,8 +149,6 @@ public class SlackNotificator implements Notificator {
     }
 
     private void sendNotification(String message, Set<SUser> users) {
-        log.info("Sending notification: " + message);
-
         for (SUser user : users) {
             SlackWrapper slackWrapper = getSlackWrapperWithUser(user);
             slackWrapper.send(message);
@@ -201,13 +160,21 @@ public class SlackNotificator implements Notificator {
         String username = user.getPropertyValue(slackUsername);
         String url = user.getPropertyValue(slackUrl);
 
-        if (channel == null || username == null || url == null) {
+        if (slackConfigurationIsInvalid(channel, username, url)) {
             log.error("Could not send Slack notification. The Slack channel, username, or URL was null. " +
                       "Double check your Notification settings");
 
             return new SlackWrapper();
         }
 
+        return constructSlackWrapper(channel, username, url);
+    }
+
+    private boolean slackConfigurationIsInvalid(String channel, String username, String url) {
+        return channel == null || username == null || url == null;
+    }
+
+    private SlackWrapper constructSlackWrapper(String channel, String username, String url) {
         SlackWrapper slackWrapper = new SlackWrapper();
 
         slackWrapper.setChannel(channel);
