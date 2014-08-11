@@ -25,7 +25,7 @@ Add notification rules as appropriate.
 
 ## Configuration Example
 
-![Configuration Settings](../blob/master/configuration%20example.png)
+![Configuration Settings](/master/configuration%20example.png)
 
 ## Warning
 
