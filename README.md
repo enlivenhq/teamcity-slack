@@ -3,7 +3,7 @@ A configurable TeamCity plugin that notifies your [Slack](https://slack.com) cha
 Because it is a [TeamCity Custom Notifier](http://confluence.jetbrains.com/display/TCD8/Custom+Notifier) plugin, it extends the existing user interface and allows for easy configuration directly within your TeamCity server. Once installed, you can configure the plugin for multiple TeamCity projects and multiple build conditions (i.e. Build failures, successes, hangs, etc.)
 
 ## Installation
-Download the [plugin zip package](http://todo).
+Download the [plugin zip package](/target/teamcity-slack-integration.zip).
 
 Follow the TeamCity [plugin installation directions](http://confluence.jetbrains.com/display/TCD8/Installing+Additional+Plugins).
 
