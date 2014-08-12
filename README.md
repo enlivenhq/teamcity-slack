@@ -31,5 +31,13 @@ Add notification rules as appropriate.
 
 Tested exclusively with TeamCity version 8.1.1.
 
+## Contributors
+
+[Jesse Dunlap](https://twitter.com/jessedunlap)
+
+[Andrew Clark](https://twitter.com/andrew_jclark)
+
+[Ian Robinson](https://twitter.com/irobinson)
+
 ## License
 MIT
