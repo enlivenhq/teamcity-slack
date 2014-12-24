@@ -51,38 +51,31 @@ public class SlackNotificator implements Notificator {
     }
 
     public void notifyBuildFailed(@NotNull SRunningBuild sRunningBuild, @NotNull Set<SUser> users) {
-         sendNotification("@channel: Build " + sRunningBuild.getFullName() + " #" +
-                sRunningBuild.getBuildNumber() + " failed.", users);
+         sendNotification(sRunningBuild.getFullName(), sRunningBuild.getBuildNumber(), "failed", "danger", users);
     }
 
     public void notifyBuildFailedToStart(@NotNull SRunningBuild sRunningBuild, @NotNull Set<SUser> users) {
-        sendNotification("@channel: Build " + sRunningBuild.getFullName() + " #" +
-                sRunningBuild.getBuildNumber() + " failed to start.", users);
+        sendNotification(sRunningBuild.getFullName(), sRunningBuild.getBuildNumber(), "failed to start", "danger", users);
     }
 
     public void notifyBuildSuccessful(@NotNull SRunningBuild sRunningBuild, @NotNull Set<SUser> users) {
-        sendNotification("@channel: Build " + sRunningBuild.getFullName() + " #" +
-                sRunningBuild.getBuildNumber() + " built successfully.", users);
+        sendNotification(sRunningBuild.getFullName(), sRunningBuild.getBuildNumber(), "built successfully", "good", users);
     }
 
     public void notifyLabelingFailed(@NotNull Build build, @NotNull VcsRoot vcsRoot, @NotNull Throwable throwable, @NotNull Set<SUser> sUsers) {
-        sendNotification("@channel: Build " + build.getFullName() + " #" +
-                build.getBuildNumber() + " labeling failed.", sUsers);
+        sendNotification(build.getFullName(), build.getBuildNumber(), "labeling failed", "danger", sUsers);
     }
 
     public void notifyBuildFailing(@NotNull SRunningBuild sRunningBuild, @NotNull Set<SUser> sUsers) {
-        sendNotification("@channel: Build " + sRunningBuild.getFullName() + " #" +
-                sRunningBuild.getBuildNumber() + " failing.", sUsers);
+        sendNotification(sRunningBuild.getFullName(), sRunningBuild.getBuildNumber(), "failing", "danger", sUsers);
     }
 
     public void notifyBuildProbablyHanging(@NotNull SRunningBuild sRunningBuild, @NotNull Set<SUser> sUsers) {
-        sendNotification("@channel: Build " + sRunningBuild.getFullName() + " #" +
-                sRunningBuild.getBuildNumber() + " probably hanging.", sUsers);
+        sendNotification(sRunningBuild.getFullName(), sRunningBuild.getBuildNumber(), "probably hanging", "warning", sUsers);
     }
 
     public void notifyBuildStarted(@NotNull SRunningBuild sRunningBuild, @NotNull Set<SUser> sUsers) {
-        sendNotification("@channel: Build " + sRunningBuild.getFullName() + " #" +
-                sRunningBuild.getBuildNumber() + " started.", sUsers);
+        sendNotification(sRunningBuild.getFullName(), sRunningBuild.getBuildNumber(), "started", "warning", sUsers);
     }
 
     public void notifyResponsibleChanged(@NotNull SBuildType sBuildType, @NotNull Set<SUser> sUsers) {
@@ -148,10 +141,10 @@ public class SlackNotificator implements Notificator {
         return userPropertyInfos;
     }
 
-    private void sendNotification(String message, Set<SUser> users) {
+    private void sendNotification(String project, String build, String statusText, String statusColor, Set<SUser> users) {
         for (SUser user : users) {
             SlackWrapper slackWrapper = getSlackWrapperWithUser(user);
-            slackWrapper.send(message);
+            slackWrapper.send(project, build, statusText, statusColor);
         }
     }
 
