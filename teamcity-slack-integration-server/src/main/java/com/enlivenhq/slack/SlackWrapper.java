@@ -14,13 +14,9 @@ public class SlackWrapper
 
     protected String channel;
 
-    public String send(String message)
+    public String send(String project, String build, String statusText, String statusColor)
     {
-        String formattedPayload =
-                "payload={ \"text\": \"" + message +
-                "\", \"channel\": \"" + this.getChannel() +
-                "\", \"username\": \"" + this.getUsername() + "\" }";
-
+        String formattedPayload = "payload={text: \"" + project + " #" + build + " " + statusText + "\",attachments: [{fallback: \"" + project + " #" + build + " " + statusText + "\",text: \"" + project + " #" + build + " " + statusText + "\",pretext: \"Build Status\",color: \"" + statusColor + "\",fields: [{title: \"Project\",value: \"" + project + "\",short: false},{title: \"Build\",value: \"" + build + "\",short: true},{title: \"Status\",value: \"" + statusText + "\",short: false}]}],channel: \"" + this.getChannel() + "\",username: \"" + this.getUsername() + "\"}";
 
         try {
             URL url = new URL(this.getSlackUrl());
