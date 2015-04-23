@@ -18,6 +18,7 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Set;
@@ -144,7 +145,12 @@ public class SlackNotificator implements Notificator {
     private void sendNotification(String project, String build, String statusText, String statusColor, Set<SUser> users) {
         for (SUser user : users) {
             SlackWrapper slackWrapper = getSlackWrapperWithUser(user);
-            slackWrapper.send(project, build, statusText, statusColor);
+            try {
+                slackWrapper.send(project, build, statusText, statusColor);
+            }
+            catch (IOException e) {
+                log.error(e.getMessage());
+            }
         }
     }
 
