@@ -1,9 +1,7 @@
 package com.enlivenhq.slack;
 
 import javax.net.ssl.HttpsURLConnection;
-import java.io.BufferedReader;
-import java.io.DataOutputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URL;
 
 public class SlackWrapper
@@ -14,46 +12,56 @@ public class SlackWrapper
 
     protected String channel;
 
-    public String send(String project, String build, String statusText, String statusColor)
+    public String send(String project, String build, String statusText, String statusColor) throws IOException
     {
         String formattedPayload = "payload={text: \"" + project + " #" + build + " " + statusText + "\",attachments: [{fallback: \"" + project + " #" + build + " " + statusText + "\",text: \"" + project + " #" + build + " " + statusText + "\",pretext: \"Build Status\",color: \"" + statusColor + "\",fields: [{title: \"Project\",value: \"" + project + "\",short: false},{title: \"Build\",value: \"" + build + "\",short: true},{title: \"Status\",value: \"" + statusText + "\",short: false}]}],channel: \"" + this.getChannel() + "\",username: \"" + this.getUsername() + "\"}";
 
+        URL url = new URL(this.getSlackUrl());
+        HttpsURLConnection httpsURLConnection = (HttpsURLConnection) url.openConnection();
+
+        httpsURLConnection.setRequestMethod("POST");
+        httpsURLConnection.setRequestProperty("User-Agent", "Enliven");
+        httpsURLConnection.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
+        httpsURLConnection.setDoOutput(true);
+
+        DataOutputStream dataOutputStream = new DataOutputStream(
+                httpsURLConnection.getOutputStream()
+        );
+
+        dataOutputStream.writeBytes(formattedPayload);
+        dataOutputStream.flush();
+        dataOutputStream.close();
+
+        InputStream inputStream;
+        String responseBody = "";
+
         try {
-            URL url = new URL(this.getSlackUrl());
-            HttpsURLConnection httpsURLConnection = (HttpsURLConnection) url.openConnection();
-
-            httpsURLConnection.setRequestMethod("POST");
-            httpsURLConnection.setRequestProperty("User-Agent", "Enliven");
-            httpsURLConnection.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
-            httpsURLConnection.setDoOutput(true);
-
-            DataOutputStream dataOutputStream = new DataOutputStream(
-                    httpsURLConnection.getOutputStream()
-            );
-
-            dataOutputStream.writeBytes(formattedPayload);
-            dataOutputStream.flush();
-            dataOutputStream.close();
-
-            BufferedReader bufferedReader = new BufferedReader(
-                    new InputStreamReader(httpsURLConnection.getInputStream())
-            );
-
-            String line;
-            String responseBody = "";
-
-            while ((line = bufferedReader.readLine()) != null) {
-                responseBody += line + "\n";
-            }
-
-            bufferedReader.close();
-            return responseBody;
+            inputStream = httpsURLConnection.getInputStream();
+        }
+        catch (IOException e) {
+            responseBody = e.getMessage() + ": ";
+            inputStream = httpsURLConnection.getErrorStream();
+            throw new IOException(getResponseBody(inputStream, responseBody));
         }
 
-        catch (Exception e) {
-            return e.getMessage();
-        }
+        return getResponseBody(inputStream, responseBody);
     }
+
+    private String getResponseBody(InputStream inputStream, String responseBody) throws IOException {
+        String line;
+
+        BufferedReader bufferedReader = new BufferedReader(
+                new InputStreamReader(inputStream)
+        );
+
+        while ((line = bufferedReader.readLine()) != null) {
+            responseBody += line + "\n";
+        }
+
+        bufferedReader.close();
+        return responseBody;
+    }
+
 
     public void setSlackUrl(String slackUrl)
     {
