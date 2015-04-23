@@ -14,7 +14,26 @@ public class SlackWrapper
 
     public String send(String project, String build, String statusText, String statusColor) throws IOException
     {
-        String formattedPayload = "payload={text: \"" + project + " #" + build + " " + statusText + "\",attachments: [{fallback: \"" + project + " #" + build + " " + statusText + "\",text: \"" + project + " #" + build + " " + statusText + "\",pretext: \"Build Status\",color: \"" + statusColor + "\",fields: [{title: \"Project\",value: \"" + project + "\",short: false},{title: \"Build\",value: \"" + build + "\",short: true},{title: \"Status\",value: \"" + statusText + "\",short: false}]}],channel: \"" + this.getChannel() + "\",username: \"" + this.getUsername() + "\"}";
+        String payloadText = project + " #" + build + " " + statusText;
+        String attachmentProject = "{\"title\":\"Project\",\"value\":\"" + project + "\",\"short\": false}";
+        String attachmentBuild = "{\"title\":\"Build\",\"value\":\"" + build + "\",\"short\": true}";
+        String attachmentStatus = "{\"title\":\"Status\",\"value\":\"" + statusText + "\",\"short\": false}";
+
+        String formattedPayload = "payload={" +
+            "\"text\":\"" + payloadText + "\"," +
+            "\"attachments\": [{" +
+                "\"fallback\":\"" + payloadText + "\"," +
+                "\"pretext\":\"Build Status\"," +
+                "\"color\":\"" + statusColor + "\"," +
+                "\"fields\": [" +
+                    attachmentProject + "," +
+                    attachmentBuild + "," +
+                    attachmentStatus +
+                "]" +
+            "}]," +
+            "\"channel\":\"" + this.getChannel() + "\"," +
+            "\"username\":\"" + this.getUsername() + "\"" +
+        "}";
 
         URL url = new URL(this.getSlackUrl());
         HttpsURLConnection httpsURLConnection = (HttpsURLConnection) url.openConnection();
