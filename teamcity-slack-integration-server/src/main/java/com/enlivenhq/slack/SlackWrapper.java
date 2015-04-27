@@ -1,5 +1,7 @@
 package com.enlivenhq.slack;
 
+import jetbrains.buildServer.web.util.WebUtil;
+
 import javax.net.ssl.HttpsURLConnection;
 import java.io.*;
 import java.net.URL;
@@ -14,6 +16,9 @@ public class SlackWrapper
 
     public String send(String project, String build, String statusText, String statusColor) throws IOException
     {
+        project = WebUtil.encode(project);
+        build = WebUtil.encode(build);
+        statusText = WebUtil.encode(statusText);
         String payloadText = project + " #" + build + " " + statusText;
         String attachmentProject = "{\"title\":\"Project\",\"value\":\"" + project + "\",\"short\": false}";
         String attachmentBuild = "{\"title\":\"Build\",\"value\":\"" + build + "\",\"short\": true}";
