@@ -63,9 +63,13 @@ public class SlackWrapper
             inputStream = httpsURLConnection.getInputStream();
         }
         catch (IOException e) {
-            responseBody = e.getMessage() + ": ";
+            responseBody = e.getMessage();
             inputStream = httpsURLConnection.getErrorStream();
-            throw new IOException(getResponseBody(inputStream, responseBody));
+            if (inputStream != null) {
+                responseBody += ": ";
+                responseBody = getResponseBody(inputStream, responseBody);
+            }
+            throw new IOException(responseBody);
         }
 
         return getResponseBody(inputStream, responseBody);
