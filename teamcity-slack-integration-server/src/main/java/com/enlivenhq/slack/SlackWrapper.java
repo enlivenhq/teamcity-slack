@@ -1,5 +1,6 @@
 package com.enlivenhq.slack;
 
+import jetbrains.buildServer.Build;
 import jetbrains.buildServer.web.util.WebUtil;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -14,17 +15,20 @@ public class SlackWrapper
 
     protected String channel;
 
-    public String send(String project, String build, String statusText, String statusColor) throws IOException
+    protected String serverUrl;
+
+    public String send(String project, String build, String statusText, String statusColor, Build bt) throws IOException
     {
-        project = WebUtil.encode(project);
-        build = WebUtil.encode(build);
-        statusText = WebUtil.encode(statusText);
+        String btId = bt.getBuildTypeExternalId();
+        project = WebUtil.escapeForJavaScript(project, false, false);
+        build = WebUtil.escapeForJavaScript(build, false, false);
+        statusText = "<" + WebUtil.escapeUrlForQuotes(getServerUrl()) + "/viewLog.html?buildId=" + bt.getBuildId() + "&buildTypeId=" + btId + "|" + statusText + ">";
         String payloadText = project + " #" + build + " " + statusText;
         String attachmentProject = "{\"title\":\"Project\",\"value\":\"" + project + "\",\"short\": false}";
         String attachmentBuild = "{\"title\":\"Build\",\"value\":\"" + build + "\",\"short\": true}";
         String attachmentStatus = "{\"title\":\"Status\",\"value\":\"" + statusText + "\",\"short\": false}";
 
-        String formattedPayload = "payload={" +
+        String formattedPayload = "{" +
             "\"text\":\"" + payloadText + "\"," +
             "\"attachments\": [{" +
                 "\"fallback\":\"" + payloadText + "\"," +
@@ -119,5 +123,13 @@ public class SlackWrapper
     public String getChannel()
     {
         return this.channel;
+    }
+
+    public String getServerUrl() {
+        return serverUrl;
+    }
+
+    public void setServerUrl(String serverUrl) {
+        this.serverUrl = serverUrl;
     }
 }

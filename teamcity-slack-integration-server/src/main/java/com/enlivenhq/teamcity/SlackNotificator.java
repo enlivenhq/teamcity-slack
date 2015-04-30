@@ -37,8 +37,11 @@ public class SlackNotificator implements Notificator {
     private static final PropertyKey slackUsername = new NotificatorPropertyKey(type, slackUsernameKey);
     private static final PropertyKey slackUrl = new NotificatorPropertyKey(type, slackUrlKey);
 
-    public SlackNotificator(NotificatorRegistry notificatorRegistry) {
+    private SBuildServer myServer;
+
+    public SlackNotificator(NotificatorRegistry notificatorRegistry, SBuildServer server) {
         registerNotificatorAndUserProperties(notificatorRegistry);
+        myServer = server;
     }
 
     @NotNull
@@ -52,31 +55,31 @@ public class SlackNotificator implements Notificator {
     }
 
     public void notifyBuildFailed(@NotNull SRunningBuild sRunningBuild, @NotNull Set<SUser> users) {
-         sendNotification(sRunningBuild.getFullName(), sRunningBuild.getBuildNumber(), "failed", "danger", users);
+         sendNotification(sRunningBuild.getFullName(), sRunningBuild.getBuildNumber(), "failed", "danger", users, sRunningBuild);
     }
 
     public void notifyBuildFailedToStart(@NotNull SRunningBuild sRunningBuild, @NotNull Set<SUser> users) {
-        sendNotification(sRunningBuild.getFullName(), sRunningBuild.getBuildNumber(), "failed to start", "danger", users);
+        sendNotification(sRunningBuild.getFullName(), sRunningBuild.getBuildNumber(), "failed to start", "danger", users, sRunningBuild);
     }
 
     public void notifyBuildSuccessful(@NotNull SRunningBuild sRunningBuild, @NotNull Set<SUser> users) {
-        sendNotification(sRunningBuild.getFullName(), sRunningBuild.getBuildNumber(), "built successfully", "good", users);
+        sendNotification(sRunningBuild.getFullName(), sRunningBuild.getBuildNumber(), "built successfully", "good", users, sRunningBuild);
     }
 
     public void notifyLabelingFailed(@NotNull Build build, @NotNull VcsRoot vcsRoot, @NotNull Throwable throwable, @NotNull Set<SUser> sUsers) {
-        sendNotification(build.getFullName(), build.getBuildNumber(), "labeling failed", "danger", sUsers);
+        sendNotification(build.getFullName(), build.getBuildNumber(), "labeling failed", "danger", sUsers, build);
     }
 
     public void notifyBuildFailing(@NotNull SRunningBuild sRunningBuild, @NotNull Set<SUser> sUsers) {
-        sendNotification(sRunningBuild.getFullName(), sRunningBuild.getBuildNumber(), "failing", "danger", sUsers);
+        sendNotification(sRunningBuild.getFullName(), sRunningBuild.getBuildNumber(), "failing", "danger", sUsers, sRunningBuild);
     }
 
     public void notifyBuildProbablyHanging(@NotNull SRunningBuild sRunningBuild, @NotNull Set<SUser> sUsers) {
-        sendNotification(sRunningBuild.getFullName(), sRunningBuild.getBuildNumber(), "probably hanging", "warning", sUsers);
+        sendNotification(sRunningBuild.getFullName(), sRunningBuild.getBuildNumber(), "probably hanging", "warning", sUsers, sRunningBuild);
     }
 
     public void notifyBuildStarted(@NotNull SRunningBuild sRunningBuild, @NotNull Set<SUser> sUsers) {
-        sendNotification(sRunningBuild.getFullName(), sRunningBuild.getBuildNumber(), "started", "warning", sUsers);
+        sendNotification(sRunningBuild.getFullName(), sRunningBuild.getBuildNumber(), "started", "warning", sUsers, sRunningBuild);
     }
 
     public void notifyResponsibleChanged(@NotNull SBuildType sBuildType, @NotNull Set<SUser> sUsers) {
@@ -142,11 +145,11 @@ public class SlackNotificator implements Notificator {
         return userPropertyInfos;
     }
 
-    private void sendNotification(String project, String build, String statusText, String statusColor, Set<SUser> users) {
+    private void sendNotification(String project, String build, String statusText, String statusColor, Set<SUser> users, Build bt) {
         for (SUser user : users) {
             SlackWrapper slackWrapper = getSlackWrapperWithUser(user);
             try {
-                slackWrapper.send(project, build, statusText, statusColor);
+                slackWrapper.send(project, build, statusText, statusColor, bt);
             }
             catch (IOException e) {
                 log.error(e.getMessage());
@@ -179,6 +182,7 @@ public class SlackNotificator implements Notificator {
         slackWrapper.setChannel(channel);
         slackWrapper.setUsername(username);
         slackWrapper.setSlackUrl(url);
+        slackWrapper.setServerUrl(myServer.getRootUrl());
 
         return slackWrapper;
     }
