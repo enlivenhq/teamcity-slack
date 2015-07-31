@@ -55,7 +55,7 @@ public class SlackNotificator implements Notificator {
     }
 
     public void notifyBuildFailed(@NotNull SRunningBuild sRunningBuild, @NotNull Set<SUser> users) {
-         sendNotification(sRunningBuild.getFullName(), sRunningBuild.getBuildNumber(), "failed", "danger", users, sRunningBuild);
+         sendNotification(sRunningBuild.getFullName(), sRunningBuild.getBuildNumber(), "failed: " + sRunningBuild.getStatusDescriptor().getText(), "danger", users, sRunningBuild);
     }
 
     public void notifyBuildFailedToStart(@NotNull SRunningBuild sRunningBuild, @NotNull Set<SUser> users) {
