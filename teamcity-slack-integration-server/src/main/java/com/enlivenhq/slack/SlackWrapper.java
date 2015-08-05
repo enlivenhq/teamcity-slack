@@ -1,5 +1,8 @@
 package com.enlivenhq.slack;
 
+import jetbrains.buildServer.Build;
+import jetbrains.buildServer.web.util.WebUtil;
+
 import javax.net.ssl.HttpsURLConnection;
 import java.io.*;
 import java.net.URL;
@@ -12,14 +15,20 @@ public class SlackWrapper
 
     protected String channel;
 
-    public String send(String project, String build, String statusText, String statusColor) throws IOException
+    protected String serverUrl;
+
+    public String send(String project, String build, String statusText, String statusColor, Build bt) throws IOException
     {
+        String btId = bt.getBuildTypeExternalId();
+        project = WebUtil.escapeForJavaScript(project, false, false);
+        build = WebUtil.escapeForJavaScript(build, false, false);
+        statusText = "<" + WebUtil.escapeUrlForQuotes(getServerUrl()) + "/viewLog.html?buildId=" + bt.getBuildId() + "&buildTypeId=" + btId + "|" + statusText + ">";
         String payloadText = project + " #" + build + " " + statusText;
         String attachmentProject = "{\"title\":\"Project\",\"value\":\"" + project + "\",\"short\": false}";
         String attachmentBuild = "{\"title\":\"Build\",\"value\":\"" + build + "\",\"short\": true}";
         String attachmentStatus = "{\"title\":\"Status\",\"value\":\"" + statusText + "\",\"short\": false}";
 
-        String formattedPayload = "payload={" +
+        String formattedPayload = "{" +
             "\"text\":\"" + payloadText + "\"," +
             "\"attachments\": [{" +
                 "\"fallback\":\"" + payloadText + "\"," +
@@ -58,9 +67,13 @@ public class SlackWrapper
             inputStream = httpsURLConnection.getInputStream();
         }
         catch (IOException e) {
-            responseBody = e.getMessage() + ": ";
+            responseBody = e.getMessage();
             inputStream = httpsURLConnection.getErrorStream();
-            throw new IOException(getResponseBody(inputStream, responseBody));
+            if (inputStream != null) {
+                responseBody += ": ";
+                responseBody = getResponseBody(inputStream, responseBody);
+            }
+            throw new IOException(responseBody);
         }
 
         return getResponseBody(inputStream, responseBody);
@@ -110,5 +123,13 @@ public class SlackWrapper
     public String getChannel()
     {
         return this.channel;
+    }
+
+    public String getServerUrl() {
+        return serverUrl;
+    }
+
+    public void setServerUrl(String serverUrl) {
+        this.serverUrl = serverUrl;
     }
 }
