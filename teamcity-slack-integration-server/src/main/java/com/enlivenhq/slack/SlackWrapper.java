@@ -1,6 +1,7 @@
 package com.enlivenhq.slack;
 
 import jetbrains.buildServer.Build;
+import jetbrains.buildServer.serverSide.TeamCityProperties;
 import jetbrains.buildServer.web.util.WebUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -67,10 +68,10 @@ public class SlackWrapper
         String attachmentProject = "{\"title\":\"Project\",\"value\":\"" + project + "\",\"short\": false}";
         String attachmentBuild = "{\"title\":\"Build\",\"value\":\"" + build + "\",\"short\": true}";
         String attachmentStatus = "{\"title\":\"Status\",\"value\":\"" + statusText + "\",\"short\": false}";
+        String attachment = "";
 
-        return "{" +
-            "\"text\":\"" + payloadText + "\"," +
-            "\"attachments\": [{" +
+        if (TeamCityProperties.getBooleanOrTrue("teamcity.notification.slack.useAttachment")) {
+            attachment = "\"attachments\": [" + "{" +
                 "\"fallback\":\"" + payloadText + "\"," +
                 "\"pretext\":\"Build Status\"," +
                 "\"color\":\"" + statusColor + "\"," +
@@ -79,7 +80,12 @@ public class SlackWrapper
                     attachmentBuild + "," +
                     attachmentStatus +
                 "]" +
-            "}]," +
+            "}" + "],";
+        }
+
+        return "{" +
+            "\"text\":\"" + payloadText + "\"," +
+            attachment +
             "\"channel\":\"" + this.getChannel() + "\"," +
             "\"username\":\"" + this.getUsername() + "\"" +
         "}";
@@ -99,7 +105,6 @@ public class SlackWrapper
         bufferedReader.close();
         return responseBody;
     }
-
 
     public void setSlackUrl(String slackUrl)
     {
