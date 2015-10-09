@@ -1,7 +1,9 @@
 package com.enlivenhq.slack;
 
 import jetbrains.buildServer.Build;
+import jetbrains.buildServer.serverSide.TeamCityProperties;
 import jetbrains.buildServer.web.util.WebUtil;
+import org.jetbrains.annotations.NotNull;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.*;
@@ -19,30 +21,7 @@ public class SlackWrapper
 
     public String send(String project, String build, String statusText, String statusColor, Build bt) throws IOException
     {
-        String btId = bt.getBuildTypeExternalId();
-        project = WebUtil.escapeForJavaScript(project, false, false);
-        build = WebUtil.escapeForJavaScript(build, false, false);
-        statusText = "<" + WebUtil.escapeUrlForQuotes(getServerUrl()) + "/viewLog.html?buildId=" + bt.getBuildId() + "&buildTypeId=" + btId + "|" + statusText + ">";
-        String payloadText = project + " #" + build + " " + statusText;
-        String attachmentProject = "{\"title\":\"Project\",\"value\":\"" + project + "\",\"short\": false}";
-        String attachmentBuild = "{\"title\":\"Build\",\"value\":\"" + build + "\",\"short\": true}";
-        String attachmentStatus = "{\"title\":\"Status\",\"value\":\"" + statusText + "\",\"short\": false}";
-
-        String formattedPayload = "{" +
-            "\"text\":\"" + payloadText + "\"," +
-            "\"attachments\": [{" +
-                "\"fallback\":\"" + payloadText + "\"," +
-                "\"pretext\":\"Build Status\"," +
-                "\"color\":\"" + statusColor + "\"," +
-                "\"fields\": [" +
-                    attachmentProject + "," +
-                    attachmentBuild + "," +
-                    attachmentStatus +
-                "]" +
-            "}]," +
-            "\"channel\":\"" + this.getChannel() + "\"," +
-            "\"username\":\"" + this.getUsername() + "\"" +
-        "}";
+        String formattedPayload = getFormattedPayload(project, build, statusText, statusColor, bt.getBuildTypeExternalId(), bt.getBuildId());
 
         URL url = new URL(this.getSlackUrl());
         HttpsURLConnection httpsURLConnection = (HttpsURLConnection) url.openConnection();
@@ -79,6 +58,39 @@ public class SlackWrapper
         return getResponseBody(inputStream, responseBody);
     }
 
+    @NotNull
+    public String getFormattedPayload(String project, String build, String statusText, String statusColor, String btId, long buildId) {
+
+        project = WebUtil.escapeForJavaScript(project, false, false);
+        build = WebUtil.escapeForJavaScript(build, false, false);
+        statusText = "<" + WebUtil.escapeUrlForQuotes(getServerUrl()) + "/viewLog.html?buildId=" + buildId + "&buildTypeId=" + btId + "|" + statusText + ">";
+        String payloadText = project + " #" + build + " " + statusText;
+        String attachmentProject = "{\"title\":\"Project\",\"value\":\"" + project + "\",\"short\": false}";
+        String attachmentBuild = "{\"title\":\"Build\",\"value\":\"" + build + "\",\"short\": true}";
+        String attachmentStatus = "{\"title\":\"Status\",\"value\":\"" + statusText + "\",\"short\": false}";
+        String attachment = "";
+
+        if (TeamCityProperties.getBooleanOrTrue("teamcity.notification.slack.useAttachment")) {
+            attachment = "\"attachments\": [" + "{" +
+                "\"fallback\":\"" + payloadText + "\"," +
+                "\"pretext\":\"Build Status\"," +
+                "\"color\":\"" + statusColor + "\"," +
+                "\"fields\": [" +
+                    attachmentProject + "," +
+                    attachmentBuild + "," +
+                    attachmentStatus +
+                "]" +
+            "}" + "],";
+        }
+
+        return "{" +
+            "\"text\":\"" + payloadText + "\"," +
+            attachment +
+            "\"channel\":\"" + this.getChannel() + "\"," +
+            "\"username\":\"" + this.getUsername() + "\"" +
+        "}";
+    }
+
     private String getResponseBody(InputStream inputStream, String responseBody) throws IOException {
         String line;
 
@@ -93,7 +105,6 @@ public class SlackWrapper
         bufferedReader.close();
         return responseBody;
     }
-
 
     public void setSlackUrl(String slackUrl)
     {
