@@ -140,7 +140,7 @@ public class SlackNotificator implements Notificator {
 
         userPropertyInfos.add(new UserPropertyInfo(slackChannelKey, "Slack Channel"));
         userPropertyInfos.add(new UserPropertyInfo(slackUsernameKey, "Slack Username"));
-        userPropertyInfos.add(new UserPropertyInfo(slackUrlKey, "Slack Instance URL"));
+        userPropertyInfos.add(new UserPropertyInfo(slackUrlKey, "Slack Webhook URL"));
 
         return userPropertyInfos;
     }
