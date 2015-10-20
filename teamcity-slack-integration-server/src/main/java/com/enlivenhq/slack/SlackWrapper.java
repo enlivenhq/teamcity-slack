@@ -1,8 +1,13 @@
 package com.enlivenhq.slack;
 
+import com.enlivenhq.teamcity.SlackNotificator;
+import com.enlivenhq.teamcity.SlackPayload;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import jetbrains.buildServer.Build;
 import jetbrains.buildServer.serverSide.TeamCityProperties;
 import jetbrains.buildServer.web.util.WebUtil;
+import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -11,6 +16,8 @@ import java.net.URL;
 
 public class SlackWrapper
 {
+    public static final GsonBuilder GSON_BUILDER = new GsonBuilder().excludeFieldsWithoutExposeAnnotation();
+    private static final Logger LOG = Logger.getLogger(SlackNotificator.class);
     protected String slackUrl;
 
     protected String username;
@@ -19,9 +26,20 @@ public class SlackWrapper
 
     protected String serverUrl;
 
-    public String send(String project, String build, String statusText, String statusColor, Build bt) throws IOException
+    protected Boolean useAttachment;
+
+    public SlackWrapper () {
+        this.useAttachment  = TeamCityProperties.getBooleanOrTrue("teamcity.notification.slack.useAttachment");
+    }
+
+    public SlackWrapper (Boolean useAttachment) {
+        this.useAttachment = useAttachment;
+    }
+
+    public String send(String project, String build, String branch, String statusText, String statusColor, Build bt) throws IOException
     {
-        String formattedPayload = getFormattedPayload(project, build, statusText, statusColor, bt.getBuildTypeExternalId(), bt.getBuildId());
+        String formattedPayload = getFormattedPayload(project, build, branch, statusText, statusColor, bt.getBuildTypeExternalId(), bt.getBuildId());
+        LOG.debug(formattedPayload);
 
         URL url = new URL(this.getSlackUrl());
         HttpsURLConnection httpsURLConnection = (HttpsURLConnection) url.openConnection();
@@ -32,7 +50,7 @@ public class SlackWrapper
         httpsURLConnection.setDoOutput(true);
 
         DataOutputStream dataOutputStream = new DataOutputStream(
-                httpsURLConnection.getOutputStream()
+            httpsURLConnection.getOutputStream()
         );
 
         dataOutputStream.writeBytes(formattedPayload);
@@ -59,36 +77,15 @@ public class SlackWrapper
     }
 
     @NotNull
-    public String getFormattedPayload(String project, String build, String statusText, String statusColor, String btId, long buildId) {
+    public String getFormattedPayload(String project, String build, String branch, String statusText, String statusColor, String btId, long buildId) {
+        Gson gson = GSON_BUILDER.create();
 
-        project = WebUtil.escapeForJavaScript(project, false, false);
-        build = WebUtil.escapeForJavaScript(build, false, false);
-        statusText = "<" + WebUtil.escapeUrlForQuotes(getServerUrl()) + "/viewLog.html?buildId=" + buildId + "&buildTypeId=" + btId + "|" + statusText + ">";
-        String payloadText = project + " #" + build + " " + statusText;
-        String attachmentProject = "{\"title\":\"Project\",\"value\":\"" + project + "\",\"short\": false}";
-        String attachmentBuild = "{\"title\":\"Build\",\"value\":\"" + build + "\",\"short\": true}";
-        String attachmentStatus = "{\"title\":\"Status\",\"value\":\"" + statusText + "\",\"short\": false}";
-        String attachment = "";
+        SlackPayload slackPayload = new SlackPayload(project, build, branch, statusText, statusColor, btId, buildId, WebUtil.escapeUrlForQuotes(getServerUrl()));
+        slackPayload.setChannel(getChannel());
+        slackPayload.setUsername(getUsername());
+        slackPayload.setUseAttachments(this.useAttachment);
 
-        if (TeamCityProperties.getBooleanOrTrue("teamcity.notification.slack.useAttachment")) {
-            attachment = "\"attachments\": [" + "{" +
-                "\"fallback\":\"" + payloadText + "\"," +
-                "\"pretext\":\"Build Status\"," +
-                "\"color\":\"" + statusColor + "\"," +
-                "\"fields\": [" +
-                    attachmentProject + "," +
-                    attachmentBuild + "," +
-                    attachmentStatus +
-                "]" +
-            "}" + "],";
-        }
-
-        return "{" +
-            "\"text\":\"" + payloadText + "\"," +
-            attachment +
-            "\"channel\":\"" + this.getChannel() + "\"," +
-            "\"username\":\"" + this.getUsername() + "\"" +
-        "}";
+        return gson.toJson(slackPayload);
     }
 
     private String getResponseBody(InputStream inputStream, String responseBody) throws IOException {
