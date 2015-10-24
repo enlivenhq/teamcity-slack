@@ -29,13 +29,15 @@ Add notification rules as appropriate.
 
 ## Warning
 
-Tested exclusively with TeamCity version 8.1.1.
+Tested mostly with TeamCity version 8.1.1 but we've definitely seen lots of folks using it with newer version as well.
 
 ## Contributors
 
 [Jesse Dunlap](https://twitter.com/jessedunlap)
 
 [Andrew Clark](https://twitter.com/andrew_jclark)
+
+[cy6erskunk] (https://github.com/cy6erskunk)
 
 [Ian Robinson](https://twitter.com/irobinson)
 
