@@ -140,7 +140,7 @@ public class SlackNotificator implements Notificator {
 
         userPropertyInfos.add(new UserPropertyInfo(slackChannelKey, "Slack Channel"));
         userPropertyInfos.add(new UserPropertyInfo(slackUsernameKey, "Slack Username"));
-        userPropertyInfos.add(new UserPropertyInfo(slackUrlKey, "Slack Instance URL"));
+        userPropertyInfos.add(new UserPropertyInfo(slackUrlKey, "Slack Webhook URL"));
 
         return userPropertyInfos;
     }
@@ -149,7 +149,7 @@ public class SlackNotificator implements Notificator {
         for (SUser user : users) {
             SlackWrapper slackWrapper = getSlackWrapperWithUser(user);
             try {
-                slackWrapper.send(project, build, statusText, statusColor, bt);
+                slackWrapper.send(project, build, getBranch((SBuild)bt), statusText, statusColor, bt);
             }
             catch (IOException e) {
                 log.error(e.getMessage());
@@ -185,5 +185,14 @@ public class SlackNotificator implements Notificator {
         slackWrapper.setServerUrl(myServer.getRootUrl());
 
         return slackWrapper;
+    }
+
+    private String getBranch(SBuild build) {
+        Branch branch = build.getBranch();
+        if (branch != null && branch.getName() != "<default>") {
+            return branch.getDisplayName();
+        } else {
+            return "";
+        }
     }
 }
