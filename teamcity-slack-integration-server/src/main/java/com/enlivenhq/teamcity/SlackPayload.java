@@ -76,7 +76,9 @@ public class SlackPayload {
         String escapedBranch = branch.length() > 0 ? " [" + branch + "]" : "";
         statusText = "<" + serverUrl + "/viewLog.html?buildId=" + buildId + "&buildTypeId=" + btId + "|" + statusText + ">";
 
-        String payloadText = project + escapedBranch + " #" + build + " " + statusText;
+        String statusEmoji = statusColor.equals("danger") ? ":x: " : statusColor.equals("warning") ? "" : ":white_check_mark: ";
+
+        String payloadText = statusEmoji + project + escapedBranch + " #" + build + " " + statusText;
         this.text = payloadText;
 
         Attachment attachment = new Attachment();
