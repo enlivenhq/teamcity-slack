@@ -10,6 +10,7 @@
   <packaging>pom</packaging>
   <properties>
       <maven.build.timestamp.format>yyyyddMMHHmmss</maven.build.timestamp.format>
+      <plugin-version>snapshot-${maven.build.timestamp}</plugin-version>
   </properties>
   <dependencies>
       <dependency>
@@ -38,7 +39,7 @@
                 <replacements>
                     <replacement>
                         <token>@Version@</token>
-                        <value>snapshot-${maven.build.timestamp}</value>
+                        <value>${plugin-version}</value>
                     </replacement>
                 </replacements>                        
             </configuration>
