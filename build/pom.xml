@@ -9,7 +9,7 @@
   <artifactId>build</artifactId>
   <packaging>pom</packaging>
   <properties>
-      <maven.build.timestamp.format>yyyyddMMHHmmss</maven.build.timestamp.format>
+      <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
       <plugin-version>snapshot-${maven.build.timestamp}</plugin-version>
   </properties>
   <dependencies>
