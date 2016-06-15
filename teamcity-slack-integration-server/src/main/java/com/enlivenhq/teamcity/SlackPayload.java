@@ -15,6 +15,10 @@ public class SlackPayload {
     protected List<Attachment> attachments;
     private List<Attachment> _attachments;
 
+    public String getText() {
+        return text;
+    }
+
     private class Attachment {
         @Expose
         protected String fallback;
@@ -41,6 +45,12 @@ public class SlackPayload {
     }
 
     private boolean useAttachments = true;
+
+    private String escape(String s) {
+        return s
+                .replace("<", "&lt;")
+                .replace(">", "&gt;");
+    }
 
     public void setChannel(String channel) {
         this.channel = channel;
@@ -73,7 +83,14 @@ public class SlackPayload {
     }
 
     public SlackPayload(String project, String build, String branch, String statusText, String statusColor, String btId, long buildId, String serverUrl) {
+        project = escape(project);
+        build = escape(build);
+        branch = escape(branch);
+        statusText = escape(statusText);
+        btId = escape(btId);
+
         String escapedBranch = branch.length() > 0 ? " [" + branch + "]" : "";
+
         statusText = "<" + serverUrl + "/viewLog.html?buildId=" + buildId + "&buildTypeId=" + btId + "|" + statusText + ">";
 
         String statusEmoji = statusColor.equals("danger") ? ":x: " : statusColor.equals("warning") ? "" : ":white_check_mark: ";
