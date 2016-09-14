@@ -52,6 +52,10 @@ public class SlackPayload {
                 .replace(">", "&gt;");
     }
 
+    private String escapeNewline(String s) {
+        return s.replace("\n", "\\n");
+    }
+
     public void setChannel(String channel) {
         this.channel = channel;
     }
@@ -86,7 +90,7 @@ public class SlackPayload {
         project = escape(project);
         build = escape(build);
         branch = escape(branch);
-        statusText = escape(statusText);
+        statusText = escape(escapeNewline(statusText));
         btId = escape(btId);
 
         String escapedBranch = branch.length() > 0 ? " [" + branch + "]" : "";

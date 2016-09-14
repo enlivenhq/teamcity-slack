@@ -12,6 +12,7 @@ public class SlackPayloadTest {
     String build = "build<http://example.com|lol>";
     String branch = "<http://example.com|lol>";
     String statusText = "<status>";
+    String statusTextMultiline = "<status\n>";
     String statusColor = "color";
     String btId = "btId<http://example.com|lol>";
     long buildId = 0;
@@ -99,6 +100,13 @@ public class SlackPayloadTest {
         slackPayload = new SlackPayload(project, build, branch, statusText, statusColor, btId, buildId, serverUrl);
         assertFalse(slackPayload.getText().contains(btId));
         assertTrue(slackPayload.getText().contains(escape(btId)));
+    }
+
+    @Test
+    public void testSlackPayloadStatusEscapeNewline() {
+        slackPayload = new SlackPayload(project, build, branch, statusTextMultiline, statusColor, btId, buildId, serverUrl);
+        assertFalse(slackPayload.getText().contains("\n"));
+        assertTrue(slackPayload.getText().contains("\\n"));
     }
 
 }
