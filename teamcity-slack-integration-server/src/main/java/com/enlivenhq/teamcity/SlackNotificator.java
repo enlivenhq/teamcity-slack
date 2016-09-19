@@ -55,7 +55,7 @@ public class SlackNotificator implements Notificator {
     }
 
     public void notifyBuildFailed(@NotNull SRunningBuild sRunningBuild, @NotNull Set<SUser> users) {
-         sendNotification(sRunningBuild.getFullName(), sRunningBuild.getBuildNumber(), "failed: " + sRunningBuild.getStatusDescriptor().getText(), "danger", users, sRunningBuild);
+        sendNotification(sRunningBuild.getFullName(), sRunningBuild.getBuildNumber(), "failed: " + sRunningBuild.getStatusDescriptor().getText(), "danger", users, sRunningBuild);
     }
 
     public void notifyBuildFailedToStart(@NotNull SRunningBuild sRunningBuild, @NotNull Set<SUser> users) {
@@ -147,29 +147,50 @@ public class SlackNotificator implements Notificator {
 
     private void sendNotification(String project, String build, String statusText, String statusColor, Set<SUser> users, Build bt) {
         for (SUser user : users) {
-            SlackWrapper slackWrapper = getSlackWrapperWithUser(user);
-            try {
-                slackWrapper.send(project, build, getBranch((SBuild)bt), statusText, statusColor, bt);
-            }
-            catch (IOException e) {
-                log.error(e.getMessage());
+            SlackWrapper[] slackWrappers = getSlackWrappersWithUser(user);
+
+            for (SlackWrapper slackWrapper : slackWrappers) {
+                try {
+                    slackWrapper.send(project, build, getBranch((SBuild) bt), statusText, statusColor, bt);
+                } catch (IOException e) {
+                    log.error(e.getMessage());
+                }
             }
         }
     }
 
-    private SlackWrapper getSlackWrapperWithUser(SUser user) {
+    private SlackWrapper[] getSlackWrappersWithUser(SUser user) {
         String channel = user.getPropertyValue(slackChannel);
         String username = user.getPropertyValue(slackUsername);
         String url = user.getPropertyValue(slackUrl);
+        String[] splitAndTrimmedChannels = splitAndTrimChannels(channel);
+        ArrayList<SlackWrapper> slackWrappers = new ArrayList<SlackWrapper>();
 
-        if (slackConfigurationIsInvalid(channel, username, url)) {
-            log.error("Could not send Slack notification. The Slack channel, username, or URL was null. " +
-                      "Double check your Notification settings");
-
-            return new SlackWrapper();
+        for (String currentChannel : splitAndTrimmedChannels) {
+            if (slackConfigurationIsInvalid(channel, username, url)) {
+                log.error("Could not send Slack notification. The Slack channel, username, or URL was null. " +
+                        "Double check your Notification settings");
+            } else {
+                slackWrappers.add(constructSlackWrapper(channel, username, url));
+            }
         }
 
-        return constructSlackWrapper(channel, username, url);
+        SlackWrapper[] slackWrapperArray = new SlackWrapper[slackWrappers.size()];
+        slackWrapperArray = slackWrappers.toArray(slackWrapperArray);
+        return slackWrapperArray;
+    }
+
+    private String[] splitAndTrimChannels(String channels) {
+        String[] channelsSplitByCommas = channels.split(",");
+        ArrayList<String> trimmedChannels = new ArrayList<String>();
+
+        for (String channel : channelsSplitByCommas) {
+            trimmedChannels.add(channel.trim());
+        }
+
+        String[] trimmedChannelArray = new String[trimmedChannels.size()];
+        trimmedChannelArray = trimmedChannels.toArray(trimmedChannelArray);
+        return trimmedChannelArray;
     }
 
     private boolean slackConfigurationIsInvalid(String channel, String username, String url) {
