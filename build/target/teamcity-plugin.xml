@@ -3,7 +3,7 @@
   <info>
     <name>teamcity-slack-integration</name>
     <display-name>Slack</display-name>
-    <version>snapshot-20152511105352</version>
+    <version>snapshot-20160914122147</version>
     <description>Post messages to your Slack instance for build events.</description>
     <download-url>http://enlivenhq.com/</download-url>
     <email>developers@enlivenhq.com</email>
