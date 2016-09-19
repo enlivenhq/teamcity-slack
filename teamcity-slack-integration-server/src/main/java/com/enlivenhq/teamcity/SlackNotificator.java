@@ -21,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 public class SlackNotificator implements Notificator {
@@ -32,10 +33,12 @@ public class SlackNotificator implements Notificator {
     private static final String slackChannelKey = "slack.Channel";
     private static final String slackUsernameKey = "slack.Username";
     private static final String slackUrlKey = "slack.Url";
+    private static final String slackVerboseKey = "slack.Verbose";
 
     private static final PropertyKey slackChannel = new NotificatorPropertyKey(type, slackChannelKey);
     private static final PropertyKey slackUsername = new NotificatorPropertyKey(type, slackUsernameKey);
     private static final PropertyKey slackUrl = new NotificatorPropertyKey(type, slackUrlKey);
+    private static final PropertyKey slackVerbose = new NotificatorPropertyKey(type, slackVerboseKey);
 
     private SBuildServer myServer;
 
@@ -138,9 +141,27 @@ public class SlackNotificator implements Notificator {
     private ArrayList<UserPropertyInfo> getUserPropertyInfosList() {
         ArrayList<UserPropertyInfo> userPropertyInfos = new ArrayList<UserPropertyInfo>();
 
+        UserPropertyValidator verboseValidator = new UserPropertyValidator() {
+            @Nullable
+            public String validate(@NotNull String s, @Nullable SUser sUser, @NotNull UserForm userForm) {
+                String sUpper = s.toUpperCase();
+                Set<String> validValues = new HashSet<String>();
+                validValues.add("TRUE");
+                validValues.add("FALSE");
+                validValues.add("YES");
+                validValues.add("NO");
+                if (validValues.contains(sUpper)) {
+                    return null;
+                } else {
+                    return "Please use True/False or Yes/No to declare if you want Verbose Slack Messages.";
+                }
+            }
+        };
+
         userPropertyInfos.add(new UserPropertyInfo(slackChannelKey, "#channel or @name"));
         userPropertyInfos.add(new UserPropertyInfo(slackUsernameKey, "Bot name"));
         userPropertyInfos.add(new UserPropertyInfo(slackUrlKey, "Webhook URL"));
+        userPropertyInfos.add(new UserPropertyInfo(slackVerboseKey, "Verbose Messages", "True", verboseValidator));
 
         return userPropertyInfos;
     }
@@ -161,23 +182,25 @@ public class SlackNotificator implements Notificator {
         String channel = user.getPropertyValue(slackChannel);
         String username = user.getPropertyValue(slackUsername);
         String url = user.getPropertyValue(slackUrl);
+        String verbose = user.getPropertyValue(slackVerbose);
 
-        if (slackConfigurationIsInvalid(channel, username, url)) {
+        if (slackConfigurationIsInvalid(channel, username, url, verbose)) {
             log.error("Could not send Slack notification. The Slack channel, username, or URL was null. " +
                       "Double check your Notification settings");
 
             return new SlackWrapper();
         }
 
-        return constructSlackWrapper(channel, username, url);
+        boolean useAttachements = convertToBoolean(verbose);
+        return constructSlackWrapper(channel, username, url, useAttachements);
     }
 
-    private boolean slackConfigurationIsInvalid(String channel, String username, String url) {
-        return channel == null || username == null || url == null;
+    private boolean slackConfigurationIsInvalid(String channel, String username, String url, String verbose) {
+        return channel == null || username == null || url == null || verbose == null;
     }
 
-    private SlackWrapper constructSlackWrapper(String channel, String username, String url) {
-        SlackWrapper slackWrapper = new SlackWrapper();
+    private SlackWrapper constructSlackWrapper(String channel, String username, String url, boolean useAttachements) {
+        SlackWrapper slackWrapper = new SlackWrapper(useAttachements);
 
         slackWrapper.setChannel(channel);
         slackWrapper.setUsername(username);
@@ -194,5 +217,10 @@ public class SlackNotificator implements Notificator {
         } else {
             return "";
         }
+    }
+
+    private boolean convertToBoolean(String value) {
+        String upper = value.toUpperCase();
+        return "TRUE".equals(upper) || "YES".equals(upper);
     }
 }
