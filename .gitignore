@@ -8,3 +8,7 @@ teamcity-slack-integration-server/target
 
 # IntelliJ #
 .idea
+
+# Gradle #
+.gradle
+teamcity-slack-integration-server/build
