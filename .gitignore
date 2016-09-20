@@ -8,9 +8,9 @@ teamcity-slack-integration-server/target
 
 # IntelliJ #
 .idea
-.iml
-.ipr
-.iws
+*.iml
+*.ipr
+*.iws
 
 # Emacs #
 *~
