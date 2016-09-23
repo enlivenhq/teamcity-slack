@@ -10,6 +10,7 @@ repositories {
 
 dependencies {
   compile 'com.google.code.gson:gson:1.7.1'
+  compile 'net.gpedro.integrations.slack:slack-webhook:1.2.1'
 }
 
 group = 'com.enlivenhq.teamcity'
