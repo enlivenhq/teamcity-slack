@@ -1,0 +1,58 @@
+plugins {
+  id "java"
+  id "idea"
+  id "com.github.rodm.teamcity-server" version "0.9.1"
+}
+
+repositories {
+  jcenter()
+}
+
+dependencies {
+  compile 'com.google.code.gson:gson:1.7.1'
+}
+
+group = 'com.enlivenhq.teamcity'
+version = '1.0-SNAPSHOT'
+
+ext {
+  teamCityDir = project.findProperty('teamcity.dir') ?: "${System.getProperty('user.home')}/TeamCity"
+  downloadsDir = project.findProperty('teamcity.downloads.dir') ?: "$teamCityDir/downloads"
+  serversDir = project.findProperty('teamcity.servers.dir') ?: "$teamCityDir/servers"
+  dataDir = project.findProperty('teamcity.data.dir') ?: "$teamCityDir/data"
+}
+
+teamcity {
+  // TeamCity API version
+  version = '9.1.6'
+
+  server {
+    descriptor {
+      // required properties
+      name = project.name
+      displayName = 'Slack'
+      version = project.version
+      vendorName = 'Enliven HQ'
+
+      // optional properties
+      description = 'Post messages to your Slack instance for build events.'
+      email = 'developers@enlivenhq.com'
+      vendorUrl = 'http://enlivenhq.com/'
+      vendorLogo = 'http://enlivenhq.com/wp-content/themes/enlivenhq/_/images/enliven_circle.svg'
+      useSeparateClassloader = true
+    }
+
+    downloadsDir = project.downloadsDir
+    baseHomeDir = project.serversDir
+    baseDataDir = project.dataDir
+
+    environments {
+      teamcity9 {
+	version = "9.1.7"
+      }
+      teamcity10 {
+	version = "10.0.1"
+      }
+    }
+  }
+}
