@@ -147,13 +147,13 @@ public class SlackNotificator implements Notificator {
     }
 
     private ArrayList<UserPropertyInfo> getUserPropertyInfosList() {
-        ArrayList<UserPropertyInfo> userPropertyInfos = new ArrayList<UserPropertyInfo>();
+        ArrayList<UserPropertyInfo> userPropertyInfos = new ArrayList<>();
 
         UserPropertyValidator verboseValidator = new UserPropertyValidator() {
             @Nullable
             public String validate(@NotNull String s, @Nullable SUser sUser, @NotNull UserForm userForm) {
                 String sUpper = s.toUpperCase();
-                Set<String> validValues = new HashSet<String>();
+                Set<String> validValues = new HashSet<>();
                 validValues.add("TRUE");
                 validValues.add("FALSE");
                 validValues.add("YES");
@@ -215,7 +215,7 @@ public class SlackNotificator implements Notificator {
 
     private String getBranch(SBuild build) {
         Branch branch = build.getBranch();
-        if (branch != null && branch.getName() != "<default>") {
+        if (branch != null && !branch.getName().equals("<default>")) {
             return branch.getDisplayName();
         } else {
             return "";
