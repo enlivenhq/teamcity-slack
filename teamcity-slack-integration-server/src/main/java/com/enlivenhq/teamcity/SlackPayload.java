@@ -1,17 +1,16 @@
 package com.enlivenhq.teamcity;
-import com.google.gson.annotations.Expose;
+
+import net.gpedro.integrations.slack.SlackAttachment;
+import net.gpedro.integrations.slack.SlackField;
+import net.gpedro.integrations.slack.SlackMessage;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class SlackPayload {
-    @Expose
     protected String text;
-    @Expose
     protected String channel;
-    @Expose
     protected String username;
-    @Expose
     protected List<Attachment> attachments;
     private List<Attachment> _attachments;
 
@@ -20,13 +19,9 @@ public class SlackPayload {
     }
 
     private class Attachment {
-        @Expose
         protected String fallback;
-        @Expose
         protected String pretext;
-        @Expose
         protected String color;
-        @Expose
         protected List<AttachmentField> fields;
     }
 
@@ -36,11 +31,8 @@ public class SlackPayload {
             value = val;
             this.isShort = isShort;
         }
-        @Expose
         protected String title;
-        @Expose
         protected String value;
-        @Expose
         protected boolean isShort;
     }
 
@@ -84,6 +76,31 @@ public class SlackPayload {
 
     public boolean hasAttachments () {
         return attachments != null && attachments.size() > 0;
+    }
+
+    public List<Attachment> getAttachments() {
+        return attachments;
+    }
+
+    public SlackMessage asMessage() {
+        SlackMessage message = new SlackMessage(getChannel(), getUsername(), getText());
+        if (useAttachments) {
+            for (Attachment attachment : attachments) {
+                SlackAttachment slackAttachment = new SlackAttachment();
+                slackAttachment.setColor(attachment.color);
+                slackAttachment.setPretext(attachment.pretext);
+                slackAttachment.setFallback(attachment.fallback);
+                for (AttachmentField field : attachment.fields) {
+                    SlackField slackField = new SlackField();
+                    slackField.setTitle(field.title);
+                    slackField.setValue(field.value);
+                    slackField.setShorten(field.isShort);
+                    slackAttachment.addFields(slackField);
+                }
+                message.addAttachments(slackAttachment);
+            }
+        }
+        return message;
     }
 
     public SlackPayload(String project, String build, String branch, String statusText, String statusColor, String btId, long buildId, String serverUrl) {

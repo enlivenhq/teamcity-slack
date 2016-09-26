@@ -2,22 +2,19 @@ package com.enlivenhq.slack;
 
 import com.enlivenhq.teamcity.SlackNotificator;
 import com.enlivenhq.teamcity.SlackPayload;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import jetbrains.buildServer.Build;
 import jetbrains.buildServer.serverSide.TeamCityProperties;
 import jetbrains.buildServer.web.util.WebUtil;
+import net.gpedro.integrations.slack.SlackApi;
 import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
-import javax.net.ssl.HttpsURLConnection;
-import java.io.*;
-import java.net.URL;
-
 public class SlackWrapper
 {
-    public static final GsonBuilder GSON_BUILDER = new GsonBuilder().excludeFieldsWithoutExposeAnnotation();
     private static final Logger LOG = Logger.getLogger(SlackNotificator.class);
+
+    private SlackApi slackClient;
+
     protected String slackUrl;
 
     protected String username;
@@ -36,71 +33,22 @@ public class SlackWrapper
         this.useAttachment = useAttachment;
     }
 
-    public String send(String project, String build, String branch, String statusText, String statusColor, Build bt) throws IOException
-    {
-        String formattedPayload = getFormattedPayload(project, build, branch, statusText, statusColor, bt.getBuildTypeExternalId(), bt.getBuildId());
-        LOG.debug(formattedPayload);
+    public void send(String project, String build, String branch, String statusText, String statusColor, Build bt) {
+        SlackPayload payload = getPayload(project, build, branch, statusText, statusColor, bt.getBuildTypeExternalId(), bt.getBuildId());
+        LOG.debug(payload.toString());
 
-        URL url = new URL(this.getSlackUrl());
-        HttpsURLConnection httpsURLConnection = (HttpsURLConnection) url.openConnection();
-
-        httpsURLConnection.setRequestMethod("POST");
-        httpsURLConnection.setRequestProperty("User-Agent", "Enliven");
-        httpsURLConnection.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
-        httpsURLConnection.setDoOutput(true);
-
-        DataOutputStream dataOutputStream = new DataOutputStream(
-            httpsURLConnection.getOutputStream()
-        );
-
-        dataOutputStream.writeBytes(formattedPayload);
-        dataOutputStream.flush();
-        dataOutputStream.close();
-
-        InputStream inputStream;
-        String responseBody = "";
-
-        try {
-            inputStream = httpsURLConnection.getInputStream();
-        }
-        catch (IOException e) {
-            responseBody = e.getMessage();
-            inputStream = httpsURLConnection.getErrorStream();
-            if (inputStream != null) {
-                responseBody += ": ";
-                responseBody = getResponseBody(inputStream, responseBody);
-            }
-            throw new IOException(responseBody);
-        }
-
-        return getResponseBody(inputStream, responseBody);
+        slackClient = new SlackApi(this.getSlackUrl());
+        slackClient.call(payload.asMessage());
     }
 
     @NotNull
-    public String getFormattedPayload(String project, String build, String branch, String statusText, String statusColor, String btId, long buildId) {
-        Gson gson = GSON_BUILDER.create();
+    public SlackPayload getPayload(String project, String build, String branch, String statusText, String statusColor, String btId, long buildId) {
+        SlackPayload payload = new SlackPayload(project, build, branch, statusText, statusColor, btId, buildId, WebUtil.escapeUrlForQuotes(getServerUrl()));
+        payload.setChannel(getChannel());
+        payload.setUsername(getUsername());
+        payload.setUseAttachments(this.useAttachment);
 
-        SlackPayload slackPayload = new SlackPayload(project, build, branch, statusText, statusColor, btId, buildId, WebUtil.escapeUrlForQuotes(getServerUrl()));
-        slackPayload.setChannel(getChannel());
-        slackPayload.setUsername(getUsername());
-        slackPayload.setUseAttachments(this.useAttachment);
-
-        return gson.toJson(slackPayload);
-    }
-
-    private String getResponseBody(InputStream inputStream, String responseBody) throws IOException {
-        String line;
-
-        BufferedReader bufferedReader = new BufferedReader(
-                new InputStreamReader(inputStream)
-        );
-
-        while ((line = bufferedReader.readLine()) != null) {
-            responseBody += line + "\n";
-        }
-
-        bufferedReader.close();
-        return responseBody;
+        return payload;
     }
 
     public void setSlackUrl(String slackUrl)

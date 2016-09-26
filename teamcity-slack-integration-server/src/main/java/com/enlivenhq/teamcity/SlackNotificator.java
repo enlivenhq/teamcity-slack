@@ -6,7 +6,16 @@ import jetbrains.buildServer.notification.Notificator;
 import jetbrains.buildServer.notification.NotificatorRegistry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityEntry;
-import jetbrains.buildServer.serverSide.*;
+import jetbrains.buildServer.serverSide.Branch;
+import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.SBuildServer;
+import jetbrains.buildServer.serverSide.SBuildType;
+import jetbrains.buildServer.serverSide.SProject;
+import jetbrains.buildServer.serverSide.SRunningBuild;
+import jetbrains.buildServer.serverSide.STest;
+import jetbrains.buildServer.serverSide.UserForm;
+import jetbrains.buildServer.serverSide.UserPropertyInfo;
+import jetbrains.buildServer.serverSide.UserPropertyValidator;
 import jetbrains.buildServer.serverSide.mute.MuteInfo;
 import jetbrains.buildServer.serverSide.problems.BuildProblemInfo;
 import jetbrains.buildServer.tests.TestName;
@@ -18,7 +27,6 @@ import org.apache.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -169,12 +177,7 @@ public class SlackNotificator implements Notificator {
     private void sendNotification(String project, String build, String statusText, String statusColor, Set<SUser> users, Build bt) {
         for (SUser user : users) {
             SlackWrapper slackWrapper = getSlackWrapperWithUser(user);
-            try {
-                slackWrapper.send(project, build, getBranch((SBuild)bt), statusText, statusColor, bt);
-            }
-            catch (IOException e) {
-                log.error(e.getMessage());
-            }
+            slackWrapper.send(project, build, getBranch((SBuild)bt), statusText, statusColor, bt);
         }
     }
 

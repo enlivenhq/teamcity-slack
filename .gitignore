@@ -1,4 +1,5 @@
 target
+teamcity-slack-integration-server/out
 teamcity-slack-integration-server/target
 *.class
 
