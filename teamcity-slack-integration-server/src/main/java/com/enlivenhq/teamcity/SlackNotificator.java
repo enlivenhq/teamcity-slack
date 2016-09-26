@@ -169,7 +169,7 @@ public class SlackNotificator implements Notificator {
         userPropertyInfos.add(new UserPropertyInfo(slackChannelKey, "#channel or @name"));
         userPropertyInfos.add(new UserPropertyInfo(slackUsernameKey, "Bot name"));
         userPropertyInfos.add(new UserPropertyInfo(slackUrlKey, "Webhook URL"));
-        userPropertyInfos.add(new UserPropertyInfo(slackVerboseKey, "Verbose Messages", "True", verboseValidator));
+        userPropertyInfos.add(new UserPropertyInfo(slackVerboseKey, "Verbose Messages", "True or False", verboseValidator));
 
         return userPropertyInfos;
     }
