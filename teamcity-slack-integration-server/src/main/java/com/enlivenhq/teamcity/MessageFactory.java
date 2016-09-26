@@ -7,7 +7,7 @@ import net.gpedro.integrations.slack.SlackMessage;
 /**
  * Generates {@link net.gpedro.integrations.slack.SlackMessage} instances.
  * <p>
- * The messages are approprite for the given TeamCity data.
+ * The messages are appropriate for the given TeamCity data.
  */
 public class MessageFactory {
 
