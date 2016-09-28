@@ -6,7 +6,14 @@ import jetbrains.buildServer.notification.Notificator;
 import jetbrains.buildServer.notification.NotificatorRegistry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityEntry;
-import jetbrains.buildServer.serverSide.*;
+import jetbrains.buildServer.serverSide.Branch;
+import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.SBuildServer;
+import jetbrains.buildServer.serverSide.SBuildType;
+import jetbrains.buildServer.serverSide.SProject;
+import jetbrains.buildServer.serverSide.SRunningBuild;
+import jetbrains.buildServer.serverSide.STest;
+import jetbrains.buildServer.serverSide.UserPropertyInfo;
 import jetbrains.buildServer.serverSide.mute.MuteInfo;
 import jetbrains.buildServer.serverSide.problems.BuildProblemInfo;
 import jetbrains.buildServer.tests.TestName;
@@ -21,7 +28,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
 
 public class SlackNotificator implements Notificator {
@@ -141,27 +147,10 @@ public class SlackNotificator implements Notificator {
     private ArrayList<UserPropertyInfo> getUserPropertyInfosList() {
         ArrayList<UserPropertyInfo> userPropertyInfos = new ArrayList<UserPropertyInfo>();
 
-        UserPropertyValidator verboseValidator = new UserPropertyValidator() {
-            @Nullable
-            public String validate(@NotNull String s, @Nullable SUser sUser, @NotNull UserForm userForm) {
-                String sUpper = s.toUpperCase();
-                Set<String> validValues = new HashSet<String>();
-                validValues.add("TRUE");
-                validValues.add("FALSE");
-                validValues.add("YES");
-                validValues.add("NO");
-                if (validValues.contains(sUpper)) {
-                    return null;
-                } else {
-                    return "Please use True/False or Yes/No to declare if you want Verbose Slack Messages.";
-                }
-            }
-        };
-
         userPropertyInfos.add(new UserPropertyInfo(slackChannelKey, "#channel or @name"));
         userPropertyInfos.add(new UserPropertyInfo(slackUsernameKey, "Bot name"));
         userPropertyInfos.add(new UserPropertyInfo(slackUrlKey, "Webhook URL"));
-        userPropertyInfos.add(new UserPropertyInfo(slackVerboseKey, "Verbose Messages", "True", verboseValidator));
+        userPropertyInfos.add(new UserPropertyInfo(slackVerboseKey, "Verbose Messages"));
 
         return userPropertyInfos;
     }
