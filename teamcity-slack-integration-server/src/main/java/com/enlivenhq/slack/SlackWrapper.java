@@ -35,7 +35,7 @@ public class SlackWrapper {
                 bt.getBuildTypeExternalId(), bt.getBuildId(), getServerUrl(), useAttachment);
         LOG.debug(message.toString());
 
-        SlackApi slackClient = new SlackApi(this.getSlackUrl());
+        SlackApi slackClient = new SlackApi(getSlackUrl());
         slackClient.call(message);
     }
 
