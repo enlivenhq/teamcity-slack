@@ -4,12 +4,16 @@ plugins {
   id "com.github.rodm.teamcity-server" version "0.9.1"
 }
 
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
 repositories {
   jcenter()
 }
 
 dependencies {
   compile 'com.google.code.gson:gson:1.7.1'
+  compile 'net.gpedro.integrations.slack:slack-webhook:1.2.1'
 }
 
 group = 'com.enlivenhq.teamcity'
