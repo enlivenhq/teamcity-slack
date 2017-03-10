@@ -11,7 +11,7 @@ Follow the TeamCity [plugin installation directions](http://confluence.jetbrains
 
 ## Configuration
 
-Create an [incoming webook](https://my.slack.com/services/new/incoming-webhook) in Slack.
+Create an [incoming webhook](https://my.slack.com/services/new/incoming-webhook) in Slack.
 
 Pick a Slack channel to notify on build events.
 
